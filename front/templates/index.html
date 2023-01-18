@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Crypto Wallet | Home</title>
+{% endblock %}
+
+{% block body %}
+    {% if session['user'] is not none %}
+        <br>
+        <br>
+        <br>
+        <table style="width: 50%; align-self: center; margin-left:auto; margin-right:auto;">
+            <tr>
+                <th colspan="3">
+                    <h1 style="text-align: center">Wallet</h1>
+                </th>
+            </tr>
+            <tr>
+                <th>
+                    <h3 style="text-align: center">Currency</h3>
+                </th>
+                <th>
+                    <h3 style="text-align: center">Amount</h3>
+                </th>
+                <th>
+                    <h3 style="text-align: center">Market Value</h3>
+                </th>
+            </tr>
+            {% if account.btc_enabled %}
+                <tr>
+                    <td>Bitcoin</td>
+                    <td>{{ account.btc_balance }} BTC</td>
+                    <td>{{ crypto_prices['bitcoin']['usd'] }} USD</td>
+                </tr>
+            {% endif %}
+            {% if account.eth_enabled %}
+                <tr>
+                    <td>Ethereum</td>
+                    <td>{{ account.eth_balance }} ETH</td>
+                    <td>{{ crypto_prices['ethereum']['usd'] }} USD</td>
+                </tr>
+            {% endif %}
+            {% if account.bnb_enabled %}
+                <tr>
+                    <td>BNB</td>
+                    <td>{{ account.bnb_balance }} BNB</td>
+                    <td>{{ crypto_prices['binancecoin']['usd'] }} USD</td>
+                </tr>
+            {% endif %}
+            {% if account.pol_enabled %}
+                <tr>
+                    <td>Polygon</td>
+                    <td>{{ account.pol_balance }} POL</td>
+                    <td>{{ crypto_prices['matic-network']['usd'] }} USD</td>
+                </tr>
+            {% endif %}
+            {% if account.dog_enabled %}
+                <tr>
+                    <td>Dogecoin</td>
+                    <td>{{ account.dog_balance }} DOGE</td>
+                    <td>{{ crypto_prices['dogecoin']['usd'] }} USD</td>
+                </tr>
+            {% endif %}
+            {% if account.ada_enabled %}
+                <tr>
+                    <td>Cardano</td>
+                    <td>{{ account.ada_balance }} ADA</td>
+                    <td>{{ crypto_prices['cardano']['usd'] }} USD</td>
+                </tr>
+            {% endif %}
+            {% if account.dot_enabled %}
+                <tr>
+                    <td>Polkadot</td>
+                    <td>{{ account.dot_balance }} DOT</td>
+                    <td>{{ crypto_prices['polkadot']['usd'] }} USD</td>
+                </tr>
+            {% endif %}
+            <tr>
+                <td>Card Balance</td>
+                <td colspan="2">{{ account.usd_balance }} $</td>
+            </tr>
+        </table>
+    {% else %}
+        <br>
+        <h1 style="text-align: center">You should log in to see more of the site!</h1>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='font-awesome-4.7.0/css/font-awesome.min.css') }}">
+    {% block head %}{% endblock %}
+    {{ toastr.include_jquery() }}
+    {{ toastr.include_toastr_css() }}
+    {{ toastr.message() }}
+</head>
+<body>
+<div class="hero">
+    <nav>
+        {% if session['user'] is not none %}
+            <a href="/"><h2 class="logo">Crypto <span>Wallet</span></h2></a>
+            <ul>
+                {% if session['is_verified'] == 'True' %}
+                    <li><a href="/transaction/history/default/true/default">Transaction History</a></li>
+                    <li><a href="/funds/send">Send Funds</a></li>
+                    <li><a href="/funds/transfer">Transfer Funds</a></li>
+                    <li><a href="/funds/deposit">Deposit Funds</a></li>
+                {% endif %}
+            </ul>
+            <ul>
+                {% if not session['is_verified'] == 'True' %}
+                    <li><a href="/user/verify-account">Verify Account</a></li>
+                {% else %}
+                    <li><a href="/user/update_currencies">Select Currencies</a></li>
+                {% endif %}
+                <li><a href="/user/update_profile">Edit Profile</a></li>
+                <li><a href="/user/sign-out">Sing Out</a></li>
+            </ul>
+        {% else %}
+            <a href="/"><h2 class="logo">Crypto <span>Wallet</span></h2></a>
+            <ul>
+                <li></li>
+            </ul>
+            <ul>
+                <li><a href="/user/login">Log In</a></li>
+                <li><a href="/user/register">Sing Up</a></li>
+            </ul>
+        {% endif %}
+    </nav>
+</div>
+
+{% block body %}{% endblock %}
+{{ toastr.include_toastr_js() }}
+</body>
+</html>
