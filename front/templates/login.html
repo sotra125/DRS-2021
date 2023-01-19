@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Crypto Wallet | Log In</title>
+{% endblock %}
+
+{% block body %}
+    <div class="form">
+        <form action="/user/login" method="post">
+            <table>
+                <tr>
+                    <th colspan="2">
+                        <h1 style="text-align: center">Sign In</h1>
+                    </th>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="email">Email</label>
+                    </td>
+                    <td>
+                        <input type="email" name="email" id="email" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="password">Password</label>
+                    </td>
+                    <td>
+                        <input type="password" name="password" id="password" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <input type="submit" value="Submit">
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+{% endblock %}
