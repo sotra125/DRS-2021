@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Crypto Wallet | Verify Account</title>
+{% endblock %}
+
+{% block body %}
+    <div class="form">
+        <form action="/user/verify-account" method="post">
+            <table>
+                <tr>
+                    <th colspan="8">
+                        <h1 style="text-align: center">Verify Account</h1>
+                    </th>
+                </tr>
+                <tr>
+                    <th colspan="8">
+                        <h2 style="text-align: center">Credit Card</h2>
+                    </th>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Number: </label>
+                    </td>
+                    <td>
+                        <input type="text" name="number_1" id="number" required>
+                    </td>
+                    <td>
+                        <label>-</label>
+                    </td>
+                    <td>
+                        <input type="text" name="number_2" id="number" required>
+                    </td>
+                    <td>
+                        <label>-</label>
+                    </td>
+                    <td>
+                        <input type="text" name="number_3" id="number" required>
+                    </td>
+                    <td>
+                        <label>-</label>
+                    </td>
+                    <td>
+                        <input type="text" name="number_4" id="number" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="name">Name: </label>
+                    </td>
+                    <td colspan="7">
+                        <input type="text" name="name" id="name" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Expiration Date</label>
+                    </td>
+                    <td colspan="3">
+                        <input type="text" name="expiration_date_month" id="expiration_date_month" required>
+                    </td>
+                    <td>
+                        <label>/</label>
+                    </td>
+                    <td colspan="3">
+                        <input type="text" name="expiration_date_year" id="expiration_date_month" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1">
+                        <label for="security_code">Security Code</label>
+                    </td>
+                    <td colspan="7">
+                        <input type="password" name="security_code" id="security_code" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="8">
+                        <input type="submit" value="Submit">
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+{% endblock %}

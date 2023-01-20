@@ -71,6 +71,44 @@ def login():
     return render_template('login.html')
 
 
+@app.route('/user/sign-out')
+def sign_out():
+    if 'user' in session:
+        session['user'] = None
+    if 'is_verified' in session:
+        session['is_verified'] = None
+    return redirect(url_for('home'))
+
+
+@app.route('/user/verify-account', methods=['GET', 'POST'])
+def verify_account():
+    if request.method == 'GET':
+        # check session for logged-in user
+        if 'user' not in session:
+            return render_template('login.html')
+
+        return render_template('verify-account.html')
+
+    # check session for logged-in user
+    if 'user' not in session:
+        return render_template('login.html')
+
+    data = request.form.copy().to_dict(flat=False)
+    data['user'] = session['user']
+
+    response = requests.post('http://127.0.0.1:5001/user/verify-account', data=data)
+
+    # OK
+    if response.status_code == 200:
+        session['is_verified'] = 'True'
+        flash('Account Verified!', 'message')
+        return redirect(url_for('home'))
+
+    # BAD REQUEST
+    flash(pickle.loads(response.content)['message'], 'error')
+    return render_template('verify-account.html')
+
+
 # </editor-fold>
 
 

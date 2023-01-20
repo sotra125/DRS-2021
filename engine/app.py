@@ -118,6 +118,35 @@ def login():
             mimetype='application/json')
 
 
+@app.route('/user/verify-account', methods=['POST'])
+def verify_account():
+    form_data = request.form
+    if '4242424242424242' != f'{form_data["number_1"]}{form_data["number_2"]}{form_data["number_3"]}{form_data["number_4"]}' or \
+            'Name' != form_data['name'] or \
+            '02/23' != f'{form_data["expiration_date_month"]}/{form_data["expiration_date_year"]}' or \
+            '123' != form_data['security_code']:
+        return app.response_class(response=pickle.dumps({
+            'message': 'Entered credit card is invalid!'
+        }),
+            status=400,
+            mimetype='application/json')
+
+    try:
+        user = User.query.filter_by(user_id=request.form['user']).first()
+        user.is_verified = True
+        db.session.commit()
+
+        return app.response_class(response=pickle.dumps({}),
+                                  status=200,
+                                  mimetype='application/json')
+    except:  # NOQA
+        return app.response_class(response=pickle.dumps({
+            'message': 'An error occurred while processing your request!'
+        }),
+            status=400,
+            mimetype='application/json')
+
+
 # </editor-fold>
 
 
