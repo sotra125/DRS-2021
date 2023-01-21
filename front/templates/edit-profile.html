@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Crypto Wallet | Edit Profile</title>
+{% endblock %}
+
+{% block body %}
+    <div class="form">
+        <form action="/user/update_profile" method="post">
+            <table>
+                <tr>
+                    <th colspan="2">
+                        <h1 style="text-align: center">Profile</h1>
+                    </th>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="name">Name</label>
+                    </td>
+                    <td>
+                        <input type="text" name="name" id="name" value="{{ user.name }}" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="last_name">Last Name</label>
+                    </td>
+                    <td>
+                        <input type="text" name="last_name" id="last_name" value="{{ user.last_name }}" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="address">Address</label>
+                    </td>
+                    <td>
+                        <input type="text" name="address" id="address" value="{{ user.address }}" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="city">City</label>
+                    </td>
+                    <td>
+                        <input type="text" name="city" id="city" value="{{ user.city }}" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="country">Country</label>
+                    </td>
+                    <td>
+                        <input type="text" name="country" id="country" value="{{ user.country }}" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="phone_number">Phone Number</label>
+                    </td>
+                    <td>
+                        <input type="text" name="phone_number" id="phone_number" value="{{ user.phone_number }}"
+                               required>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <input type="submit" value="Update">
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+{% endblock %}

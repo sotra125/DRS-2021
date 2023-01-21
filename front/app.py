@@ -109,8 +109,53 @@ def verify_account():
     return render_template('verify-account.html')
 
 
+@app.route('/user/update_profile', methods=['GET', 'POST'])
+def update_profile():
+    if request.method == 'GET':
+        # check session for logged-in user
+        if 'user' not in session:
+            return render_template('login.html')
+
+        user = get_user()
+        return render_template('edit-profile.html', user=user)
+
+    # check session for logged-in user
+    if 'user' not in session:
+        return render_template('login.html')
+
+    data = request.form.copy().to_dict(flat=False)
+    data['user'] = session['user']
+
+    response = requests.post('http://127.0.0.1:5001/user/update_profile', data=data)
+
+    # OK
+    if response.status_code == 200:
+        flash('Account information updated', 'message')
+        return redirect(url_for('home'))
+
+    # BAD REQUEST
+    flash(pickle.loads(response.content)['message'], 'error')
+    user = get_user()
+    return render_template('edit-profile.html', user=user)
+
+
 # </editor-fold>
 
+
+# <editor-fold desc="Other">
+
+
+def get_user():
+    response = requests.get('http://127.0.0.1:5001/user/get', data={'user': session['user']})
+    if response.status_code == 200:
+        response_data = pickle.loads(response.content)
+        user = json.loads(response_data['user'], object_hook=lambda x: SimpleNamespace(**x))
+        return user
+
+    return None
+
+
+# </editor-fold>
 
 if __name__ == '__main__':
     app.run(debug=True)

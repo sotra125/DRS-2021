@@ -147,6 +147,48 @@ def verify_account():
             mimetype='application/json')
 
 
+@app.route('/user/get')
+def get_user():
+    try:
+        user = User.query.filter_by(user_id=request.form['user']).first()
+        return app.response_class(response=pickle.dumps({
+            'user': jsonpickle.encode(user)
+        }),
+            status=200,
+            mimetype='application/json')
+    except:  # NOQA
+        return app.response_class(response=pickle.dumps({
+            'message': 'An error occurred while processing your request!'
+        }),
+            status=400,
+            mimetype='application/json')
+
+
+@app.route('/user/update_profile', methods=['GET', 'POST'])
+def update_profile():
+    form_data = request.form
+
+    user = User.query.filter_by(user_id=form_data['user']).first()
+    user.name = form_data['name']
+    user.last_name = form_data['last_name']
+    user.address = form_data['address']
+    user.city = form_data['city']
+    user.country = form_data['country']
+    user.phone_number = form_data['phone_number']
+
+    try:
+        db.session.commit()
+        return app.response_class(response=pickle.dumps({}),
+                                  status=200,
+                                  mimetype='application/json')
+    except:  # NOQA
+        return app.response_class(response=pickle.dumps({
+            'message': 'An error occurred while processing your request!'
+        }),
+            status=400,
+            mimetype='application/json')
+
+
 # </editor-fold>
 
 
