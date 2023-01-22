@@ -1,4 +1,4 @@
-from application_data import db
+from engine.application_data import db
 
 
 class Account(db.Model):

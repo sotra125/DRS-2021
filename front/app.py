@@ -139,6 +139,36 @@ def update_profile():
     return render_template('edit-profile.html', user=user)
 
 
+@app.route('/user/update_currencies', methods=['GET', 'POST'])
+def update_currencies():
+    if request.method == 'GET':
+        # check session for logged-in user
+        if 'user' not in session:
+            return render_template('login.html')
+
+        account = get_account()
+        return render_template('select-currencies.html', account=account)
+
+    # check session for logged-in user
+    if 'user' not in session:
+        return render_template('login.html')
+
+    data = request.form.copy().to_dict(flat=False)
+    data['user'] = session['user']
+
+    response = requests.post('http://127.0.0.1:5001/user/update_currencies', data=data)
+
+    # OK
+    if response.status_code == 200:
+        flash('Account information updated', 'message')
+        return redirect(url_for('home'))
+
+    # BAD REQUEST
+    flash(pickle.loads(response.content)['message'], 'error')
+    account = get_account()
+    return render_template('select-currencies.html', account=account)
+
+
 # </editor-fold>
 
 
@@ -151,6 +181,16 @@ def get_user():
         response_data = pickle.loads(response.content)
         user = json.loads(response_data['user'], object_hook=lambda x: SimpleNamespace(**x))
         return user
+
+    return None
+
+
+def get_account():
+    response = requests.get('http://127.0.0.1:5001/user/account', data={'user': session['user']})
+    if response.status_code == 200:
+        response_data = pickle.loads(response.content)
+        account = json.loads(response_data['account'], object_hook=lambda x: SimpleNamespace(**x))
+        return account
 
     return None
 

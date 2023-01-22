@@ -3,11 +3,12 @@ import pickle
 import jsonpickle
 from flask import request, session
 
-from utility import *
-from application_data import app, db
-from models.user import User
-from models.account import Account
-from models.transaction import Transaction
+from engine.config import CURRENCY_NAMES
+from engine.application_data import app, db
+from engine.utility import get_crypto_prices, hash_text, deactivate_currency, activate_currency
+from engine.models.user import User
+from engine.models.account import Account
+from engine.models.transaction import Transaction
 
 
 # <editor-fold desc="Home Routes">
@@ -177,6 +178,49 @@ def update_profile():
     user.phone_number = form_data['phone_number']
 
     try:
+        db.session.commit()
+        return app.response_class(response=pickle.dumps({}),
+                                  status=200,
+                                  mimetype='application/json')
+    except:  # NOQA
+        return app.response_class(response=pickle.dumps({
+            'message': 'An error occurred while processing your request!'
+        }),
+            status=400,
+            mimetype='application/json')
+
+
+@app.route('/user/account')
+def get_account():
+    try:
+        account = Account.query.filter_by(user_id=request.form['user']).first()
+        return app.response_class(response=pickle.dumps({
+            'account': jsonpickle.encode(account)
+        }),
+            status=200,
+            mimetype='application/json')
+    except:  # NOQA
+        return app.response_class(response=pickle.dumps({
+            'message': 'An error occurred while processing your request!'
+        }),
+            status=400,
+            mimetype='application/json')
+
+
+@app.route('/user/update_currencies', methods=['GET', 'POST'])
+def update_currencies():
+    try:
+        form_data = request.form
+        account = Account.query.filter_by(user_id=form_data['user']).first()
+
+        for currency in CURRENCY_NAMES:
+            if currency not in form_data:
+                successful = deactivate_currency(account, currency)
+                if not successful:
+                    raise Exception(f'Failed to deactivate {currency}!')
+            else:
+                activate_currency(account, currency)
+
         db.session.commit()
         return app.response_class(response=pickle.dumps({}),
                                   status=200,

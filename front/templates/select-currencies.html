@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block head %}<title>Crypto Wallet | Select Account Currencies</title>{% endblock %}
+
+{% block body %}
+    <div class="form">
+        <form action="/user/update_currencies" method="post">
+            <table style="width: 50%; align-self: center; margin-left:auto; margin-right:auto;">
+                <tr>
+                    <th colspan="2">
+                        <h1 style="text-align: center">Active Currencies</h1>
+                    </th>
+                </tr>
+
+                <tr>
+                    <td>
+                        <h3>
+                            <label for="bitcoin">
+                                Bitcoin
+                            </label>
+                        </h3>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="bitcoin" id="bitcoin" {% if account.btc_enabled %}
+                               checked {% endif %}">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h3>
+                            <label for="ethereum">
+                                Ethereum
+                            </label>
+                        </h3>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="ethereum" id="ethereum" {% if account.eth_enabled %}
+                               checked {% endif %}">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h3>
+                            <label for="bnb">
+                                BNB
+                            </label>
+                        </h3>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="bnb" id="bnb" {% if account.bnb_enabled %}
+                               checked {% endif %}">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h3>
+                            <label for="polygon">
+                                Polygon
+                            </label>
+                        </h3>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="polygon" id="polygon" {% if account.pol_enabled %}
+                               checked {% endif %}">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h3>
+                            <label for="dogecoin">
+                                Dogecoin
+                            </label>
+                        </h3>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="dogecoin" id="dogecoin" {% if account.dog_enabled %}
+                               checked {% endif %}">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h3>
+                            <label for="cardano">
+                                Cardano
+                            </label>
+                        </h3>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="cardano" id="cardano" {% if account.ada_enabled %}
+                               checked {% endif %}">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h3>
+                            <label for="polkadot">
+                                Polkadot
+                            </label>
+                        </h3>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="polkadot" id="polkadot" {% if account.dot_enabled %}
+                               checked {% endif %}">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="2">
+                        <input type="submit" value="Update">
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+{% endblock %}
