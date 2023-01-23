@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Crypto Wallet | Deposit Funds</title>
+{% endblock %}
+
+{% block body %}
+    <form action="/funds/deposit" method="post">
+        <table>
+            <tr>
+                <th colspan="2">
+                    <h1 style="text-align: center">Deposit Funds</h1>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    <label for="card">Card</label>
+                </td>
+                <td>
+                    <select name="card" id="card" required>
+                        <option value="Name" selected>Name - 4242-4242-4242-4242 - 02/23</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="amount">Amount</label>
+                </td>
+                <td>
+                    <input type="text" name="amount" id="amount" required>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <input type="submit" value="Deposit">
+                </td>
+            </tr>
+        </table>
+    </form>
+{% endblock %}

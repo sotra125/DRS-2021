@@ -236,6 +236,42 @@ def update_currencies():
 # </editor-fold>
 
 
+# <editor-fold desc="Funds Routes">
+
+
+@app.route('/funds/deposit', methods=['GET', 'POST'])
+def deposit():
+    try:
+        # extract data from form
+        form_data = request.form
+        amount = round(float(form_data['amount']), 2)
+
+        if amount <= 0:
+            return app.response_class(response=pickle.dumps({
+                'message': 'Invalid value entered!'
+            }),
+                status=400,
+                mimetype='application/json')
+
+        # add amount to account
+        account = Account.query.filter_by(user_id=form_data['user']).first()
+        account.usd_balance += amount
+
+        db.session.commit()
+        return app.response_class(response=pickle.dumps({}),
+                                  status=200,
+                                  mimetype='application/json')
+    except:  # NOQA
+        return app.response_class(response=pickle.dumps({
+            'message': 'An error occurred while processing your request!'
+        }),
+            status=400,
+            mimetype='application/json')
+
+
+# </editor-fold>
+
+
 if __name__ == '__main__':
     db.init_app(app)
     with app.app_context():

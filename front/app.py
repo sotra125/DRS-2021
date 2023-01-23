@@ -172,6 +172,36 @@ def update_currencies():
 # </editor-fold>
 
 
+# <editor-fold desc="Funds Routes">
+
+
+@app.route('/funds/deposit', methods=['GET', 'POST'])
+def deposit():
+    if request.method == 'GET':
+        # check session for logged-in user
+        if 'user' not in session:
+            return render_template('login.html')
+
+        return render_template('payment.html')
+
+    data = request.form.copy().to_dict(flat=False)
+    data['user'] = session['user']
+
+    response = requests.post('http://127.0.0.1:5001/funds/deposit', data=data)
+
+    # OK
+    if response.status_code == 200:
+        flash('Funds successfully deposited into account!', 'message')
+        return redirect(url_for('home'))
+
+    # BAD REQUEST
+    flash(pickle.loads(response.content)['message'], 'error')
+    return render_template('payment.html')
+
+
+# </editor-fold>
+
+
 # <editor-fold desc="Other">
 
 
