@@ -199,6 +199,32 @@ def deposit():
     return render_template('payment.html')
 
 
+@app.route('/funds/transfer', methods=['GET', 'POST'])
+def transfer():
+    if request.method == 'GET':
+        # check session for logged-in user
+        if 'user' not in session:
+            return render_template('login.html')
+
+        account = get_account()
+        return render_template('transfer-funds.html', account=account)
+
+    data = request.form.copy().to_dict(flat=False)
+    data['user'] = session['user']
+
+    response = requests.post('http://127.0.0.1:5001/funds/transfer', data=data)
+
+    # OK
+    if response.status_code == 200:
+        flash('Funds successfully transferred!', 'message')
+        return redirect(url_for('home'))
+
+    # BAD REQUEST
+    flash(pickle.loads(response.content)['message'], 'error')
+    account = get_account()
+    return render_template('transfer-funds.html', account=account)
+
+
 # </editor-fold>
 
 

@@ -5,7 +5,7 @@ from flask import request, session
 
 from engine.config import CURRENCY_NAMES
 from engine.application_data import app, db
-from engine.utility import get_crypto_prices, hash_text, deactivate_currency, activate_currency
+from engine.utility import get_crypto_prices, hash_text, deactivate_currency, activate_currency, convert
 from engine.models.user import User
 from engine.models.account import Account
 from engine.models.transaction import Transaction
@@ -256,6 +256,55 @@ def deposit():
         # add amount to account
         account = Account.query.filter_by(user_id=form_data['user']).first()
         account.usd_balance += amount
+
+        db.session.commit()
+        return app.response_class(response=pickle.dumps({}),
+                                  status=200,
+                                  mimetype='application/json')
+    except:  # NOQA
+        return app.response_class(response=pickle.dumps({
+            'message': 'An error occurred while processing your request!'
+        }),
+            status=400,
+            mimetype='application/json')
+
+
+@app.route('/funds/transfer', methods=['GET', 'POST'])
+def transfer():
+    try:
+        # extract data from form
+        form_data = request.form
+        from_currency = form_data['from_currency']
+        to_currency = form_data['to_currency']
+        amount = round(float(form_data['amount']), 7)
+
+        if amount <= 0:
+            return app.response_class(response=pickle.dumps({
+                'message': 'Enter a valid amount!'
+            }),
+                status=400,
+                mimetype='application/json')
+
+        if from_currency == to_currency:
+            return app.response_class(response=pickle.dumps({
+                'message': "Can't transfer into same currency!"
+            }),
+                status=400,
+                mimetype='application/json')
+
+        # check if user has sufficient funds in that currency to transfer
+        account = Account.query.filter_by(user_id=form_data['user']).first()
+        if account.__getattribute__(from_currency) < amount:
+            return app.response_class(response=pickle.dumps({
+                'message': 'Insufficient funds!'
+            }),
+                status=400,
+                mimetype='application/json')
+
+        # equalize funds
+        to_currency_amount = convert(from_currency, to_currency, amount)
+        account.__setattr__(from_currency, account.__getattribute__(from_currency) - amount)
+        account.__setattr__(to_currency, account.__getattribute__(to_currency) + to_currency_amount)
 
         db.session.commit()
         return app.response_class(response=pickle.dumps({}),
