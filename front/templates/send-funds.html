@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Crypto Wallet | Send Funds</title>
+{% endblock %}
+
+{% block body %}
+    <form action="/funds/send" method="post">
+        <table>
+            <tr>
+                <th colspan="2">
+                    <h1 style="text-align: center">Send Funds</h1>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    <label for="receiver">Receiving Users Email</label>
+                </td>
+                <td>
+                    <input type="email" name="receiver" id="receiver" required>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="currency">Currency</label>
+                </td>
+                <td>
+                    <select name="currency" id="currency" required>
+                        <option value="usd_balance" selected>US Dollar</option>
+                        {% if account.btc_enabled %}
+                            <option value="btc_balance">Bitcoin</option>
+                        {% endif %}
+                        {% if account.eth_enabled %}
+                            <option value="eth_balance">Ethereum</option>
+                        {% endif %}
+                        {% if account.bnb_enabled %}
+                            <option value="bnb_balance">BNB</option>
+                        {% endif %}
+                        {% if account.pol_enabled %}
+                            <option value="pol_balance">Polygon</option>
+                        {% endif %}
+                        {% if account.dog_enabled %}
+                            <option value="dog_balance">Dogecoin</option>
+                        {% endif %}
+                        {% if account.ada_enabled %}
+                            <option value="ada_balance">Cardano</option>
+                        {% endif %}
+                        {% if account.dot_enabled %}
+                            <option value="dot_balance">Polkadot</option>
+                        {% endif %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="amount">Amount</label>
+                </td>
+                <td>
+                    <input type="text" name="amount" id="amount" required>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <input type="submit" value="Transfer">
+                </td>
+            </tr>
+        </table>
+    </form>
+{% endblock %}

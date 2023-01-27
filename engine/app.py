@@ -1,11 +1,13 @@
 import pickle
+from datetime import datetime
 
 import jsonpickle
 from flask import request, session
 
-from engine.config import CURRENCY_NAMES
+from engine.config import CURRENCY_NAMES, ACCOUNT_BALANCE_TO_CURRENCY_NAMES_MAP
 from engine.application_data import app, db
-from engine.utility import get_crypto_prices, hash_text, deactivate_currency, activate_currency, convert
+from engine.utility import get_crypto_prices, hash_text, deactivate_currency, activate_currency, convert, \
+    get_hashed_transaction_id
 from engine.models.user import User
 from engine.models.account import Account
 from engine.models.transaction import Transaction
@@ -305,6 +307,82 @@ def transfer():
         to_currency_amount = convert(from_currency, to_currency, amount)
         account.__setattr__(from_currency, account.__getattribute__(from_currency) - amount)
         account.__setattr__(to_currency, account.__getattribute__(to_currency) + to_currency_amount)
+
+        db.session.commit()
+        return app.response_class(response=pickle.dumps({}),
+                                  status=200,
+                                  mimetype='application/json')
+    except:  # NOQA
+        return app.response_class(response=pickle.dumps({
+            'message': 'An error occurred while processing your request!'
+        }),
+            status=400,
+            mimetype='application/json')
+
+
+@app.route('/funds/send', methods=['GET', 'POST'])
+def send():
+    try:
+        # extract data from form
+        form_data = request.form
+        receiver_email = form_data['receiver']
+        currency = form_data['currency']
+        amount = round(float(form_data['amount']), 7)
+        sender_account = Account.query.filter_by(user_id=form_data['user']).first()
+
+        if amount <= 0:
+            return app.response_class(response=pickle.dumps({
+                'message': 'Enter a valid amount!'
+            }),
+                status=400,
+                mimetype='application/json')
+
+        receiver_user = User.query.filter_by(email=receiver_email).first()
+        if not isinstance(receiver_user, User):
+            return app.response_class(response=pickle.dumps({
+                'message': "User doesn't exist!"
+            }),
+                status=400,
+                mimetype='application/json')
+
+        if receiver_user.user_id == form_data['user']:
+            return app.response_class(response=pickle.dumps({
+                'message': "Can't send funds to self!"
+            }),
+                status=400,
+                mimetype='application/json')
+        receiver_account = Account.query.filter_by(user_id=receiver_user.user_id).first()
+
+        # check if user has sufficient funds in that currency to send
+        if sender_account.__getattribute__(currency) < amount:
+            return app.response_class(response=pickle.dumps({
+                'message': 'Insufficient funds!'
+            }),
+                status=400,
+                mimetype='application/json')
+
+        if currency != 'usd_balance' and not receiver_account.__getattribute__(f'{currency[:3]}_enabled'):
+            return app.response_class(response=pickle.dumps({
+                'message': "Recipient doesn't have that currency active!"
+            }),
+                status=400,
+                mimetype='application/json')
+
+        # equalize funds
+        sender_account.__setattr__(currency, sender_account.__getattribute__(currency) - amount)
+        receiver_account.__setattr__(currency, receiver_account.__getattribute__(currency) + amount)
+
+        # add transaction into db
+        sender_user = User.query.filter_by(user_id=form_data['user']).first()
+        transaction = Transaction()  # NOQA 3104
+        transaction.id = get_hashed_transaction_id(sender_user.email, receiver_user.email, amount=amount)
+        transaction.sender = sender_user.email
+        transaction.currency = ACCOUNT_BALANCE_TO_CURRENCY_NAMES_MAP[currency]
+        transaction.receiver = receiver_user.email
+        transaction.amount = amount
+        transaction.date = datetime.now()
+        transaction.state = 'Processing'
+        db.session.add(transaction)
 
         db.session.commit()
         return app.response_class(response=pickle.dumps({}),

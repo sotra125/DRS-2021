@@ -1,3 +1,5 @@
+from random import randint
+
 from pycoingecko import CoinGeckoAPI
 from Crypto.Hash import keccak
 
@@ -11,6 +13,18 @@ def hash_text(text):
     keccak_obj.update(byte_array)
     hashed_text = keccak_obj.hexdigest()
     return hashed_text
+
+
+def get_hashed_transaction_id(user_1: str, user_2: str = '', amount='') -> str:
+    """
+    Generate random hash value for transactions
+    :param user_1: Email of user (sending user in the case of fund sending)
+    :param user_2: Email of receiving user in the case of fund sending
+    :param amount: Amount of funds being transferred in the case of a transfer
+    :return: Hash string which is meant to be used as the transaction ID
+    """
+    random_value = randint(1, 100000000000)
+    return hash_text(f'{user_1}{user_2}{amount}{random_value}')
 
 
 def get_crypto_prices():
