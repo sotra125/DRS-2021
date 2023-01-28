@@ -254,6 +254,56 @@ def send():
 # </editor-fold>
 
 
+# <editor-fold desc="Transaction Routes">
+
+
+@app.route('/transaction/history/<string:sort>/<string:order>/<string:search>', methods=['GET', 'POST'])
+def transactions_history(sort: str, order: str, search: str):
+    # check session for logged-in user
+    if 'user' not in session:
+        return render_template('login.html')
+
+    data = request.form.copy().to_dict(flat=False)
+    data['user'] = session['user']
+    data['sort'] = sort
+    data['order'] = order
+    # check for new search
+    if request.method == 'GET':
+        data['search'] = search
+    else:
+        if isinstance(data['search'], list):
+            data['search'] = data['search'][0]
+
+    response = requests.get('http://127.0.0.1:5001/transaction/history', data=data)
+
+    # BAD REQUEST
+    if response.status_code != 200:
+        flash(pickle.loads(response.content)['message'], 'error')
+        return redirect(url_for('home'))
+
+    # OK
+
+    # decode the received transactions
+    transactions = []
+    response_data = pickle.loads(response.content)
+    for transaction in response_data:
+        transactions.append(json.loads(transaction, object_hook=lambda x: SimpleNamespace(**x)))
+
+    if transactions is None:
+        flash('An error occurred while fetching data!', 'error')
+        return redirect(url_for('home'))
+
+    search_term = search if request.method == 'GET' else data['search']
+    if search_term == '':
+        search_term = 'default'
+
+    return render_template('transaction-history.html', sort=sort, order='false' if order == 'true' else 'true',
+                           search=search_term, transactions=transactions)
+
+
+# </editor-fold>
+
+
 # <editor-fold desc="Other">
 
 

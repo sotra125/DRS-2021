@@ -1,8 +1,10 @@
 import pickle
+from _operator import attrgetter
 from datetime import datetime
 
 import jsonpickle
 from flask import request, session
+from sqlalchemy import or_
 
 from engine.config import CURRENCY_NAMES, ACCOUNT_BALANCE_TO_CURRENCY_NAMES_MAP
 from engine.application_data import app, db
@@ -394,6 +396,102 @@ def send():
         }),
             status=400,
             mimetype='application/json')
+
+
+# </editor-fold>
+
+
+# <editor-fold desc="Transaction Routes">
+
+
+@app.route('/transaction/all')
+def get_all_transactions():
+    transactions = get_transactions(request.form['user'])
+    encoded_transactions = []
+    for transaction in transactions:
+        encoded_transactions.append(jsonpickle.encode(transaction))
+
+    return app.response_class(response=pickle.dumps(encoded_transactions),
+                              status=200,
+                              mimetype='application/json')
+
+
+@app.route('/transaction/history')
+def transactions_history():
+    # fetch transaction data
+    transactions = get_transactions(request.form['user'])
+    if transactions is None:
+        return app.response_class(response=pickle.dumps({
+            'message': 'An error occurred while fetching data!'
+        }),
+            status=400,
+            mimetype='application/json')
+
+    # sort fetched data
+    sort_transactions(transactions, request.form['sort'], request.form['order'])
+
+    # filter fetched data
+    filtered_transactions = filter_transactions(transactions, request.form['search'])
+    if filtered_transactions is not None:
+        transactions = filtered_transactions.copy()
+
+    encoded_transactions = []
+    for transaction in transactions:
+        encoded_transactions.append(jsonpickle.encode(transaction))
+
+    return app.response_class(response=pickle.dumps(encoded_transactions),
+                              status=200,
+                              mimetype='application/json')
+
+
+def get_transactions(user_id):
+    """
+    Fetches transactions from db.
+    :return: List of transactions or None in case of exception
+    """
+    try:
+
+        user = User.query.filter_by(user_id=user_id).first()
+
+        return Transaction.query.filter(or_(
+            Transaction.sender.like(user.email),
+            Transaction.receiver.like(user.email)
+        )).all()
+    except:  # NOQA
+        return None
+
+
+def sort_transactions(transactions: list, sort: str, order: str) -> None:
+    """
+    Sorts transactions according to the sort category and order.
+    :param transactions: List of transactions to sort
+    :param sort: Sorting category
+    :param order: Sorting order
+    :return: None
+    """
+    try:
+        if sort != 'default':
+            transactions.sort(key=attrgetter(sort), reverse=order == 'true')
+        else:
+            transactions.sort(key=attrgetter('date'), reverse=order == 'true')
+    except:  # NOQA
+        pass
+
+
+def filter_transactions(transactions: list, search: str):
+    """
+    Filters transactions according to the search term if anything was searched.
+    :param transactions: List of transactions to sort
+    :param search: Search term enter with form
+    :return: Returns filtered list of transactions or None if an exception was raised during filtering.
+    """
+    try:
+        if search != 'default' and search != '':
+            return list(filter(
+                lambda transaction: transaction.sender.find(search) != -1 or transaction.receiver.find(
+                    search) != -1, transactions)).copy()
+    except:  # NOQA
+        return False
 
 
 # </editor-fold>

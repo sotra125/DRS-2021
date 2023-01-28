@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Crypto Wallet | Transaction History</title>
+{% endblock %}
+
+{% block body %}
+
+    <br>
+    <br>
+    <br>
+    <br>
+    <form action="/transaction/history/default/true/{{ search }}" method="post">
+        <table>
+            <tr>
+                <th colspan="2">
+                    <h1 style="text-align: center">Search Users</h1>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    <label for="search">Email</label>
+                </td>
+                <td>
+                    <input type="text" name="search" id="search">
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <input type="submit" value="Search">
+                </td>
+            </tr>
+        </table>
+    </form>
+    <br>
+    <br>
+
+    <table>
+        <tr>
+            <th colspan="6">
+                <h1 style="text-align: center">Sent Funds</h1>
+            </th>
+        </tr>
+        <tr>
+            <th>
+                {% if sort == 'sender' %}
+                    <a href="/transaction/history/sender/{{ order }}/{{ search }}">
+                {% else %}
+                    <a href="/transaction/history/sender/true/{{ search }}">
+                {% endif %}
+                <h3 style="text-align: center">
+                    {% if sort == 'sender' %}
+                        {% if order == 'true' %}
+                            <i class="fa fa-caret-up"></i>
+                        {% else %}
+                            <i class="fa fa-caret-down"></i>
+                        {% endif %}
+                    {% endif %}
+                    From
+                </h3>
+                </a>
+            </th>
+            <th>
+                {% if sort == 'receiver' %}
+                    <a href="/transaction/history/receiver/{{ order }}/{{ search }}">
+                {% else %}
+                    <a href="/transaction/history/receiver/true/{{ search }}">
+                {% endif %}
+                <h3 style="text-align: center">
+                    {% if sort == 'receiver' %}
+                        {% if order == 'true' %}
+                            <i class="fa fa-caret-up"></i>
+                        {% else %}
+                            <i class="fa fa-caret-down"></i>
+                        {% endif %}
+                    {% endif %}To
+                </h3>
+                </a>
+            </th>
+            <th>
+                {% if sort == 'currency' %}
+                    <a href="/transaction/history/currency/{{ order }}/{{ search }}">
+                {% else %}
+                    <a href="/transaction/history/currency/true/{{ search }}">
+                {% endif %}
+                <h3 style="text-align: center">
+                    {% if sort == 'currency' %}
+                        {% if order == 'true' %}
+                            <i class="fa fa-caret-up"></i>
+                        {% else %}
+                            <i class="fa fa-caret-down"></i>
+                        {% endif %}
+                    {% endif %}
+                    Currency
+                </h3>
+                </a>
+            </th>
+            <th>
+                {% if sort == 'amount' %}
+                    <a href="/transaction/history/amount/{{ order }}/{{ search }}">
+                {% else %}
+                    <a href="/transaction/history/amount/true/{{ search }}">
+                {% endif %}
+                <h3 style="text-align: center">
+                    {% if sort == 'amount' %}
+                        {% if order == 'true' %}
+                            <i class="fa fa-caret-up"></i>
+                        {% else %}
+                            <i class="fa fa-caret-down"></i>
+                        {% endif %}
+                    {% endif %}
+                    Amount
+                </h3>
+                </a>
+            </th>
+            <th>
+                {% if sort == 'state' %}
+                    <a href="/transaction/history/state/{{ order }}/{{ search }}">
+                {% else %}
+                    <a href="/transaction/history/state/true/{{ search }}">
+                {% endif %}
+                <h3 style="text-align: center">
+                    {% if sort == 'state' %}
+                        {% if order == 'true' %}
+                            <i class="fa fa-caret-up"></i>
+                        {% else %}
+                            <i class="fa fa-caret-down"></i>
+                        {% endif %}
+                    {% endif %}
+                    State
+                </h3>
+                </a>
+            </th>
+            <th>
+                {% if sort == 'date' %}
+                    <a href="/transaction/history/date/{{ order }}/{{ search }}">
+                {% else %}
+                    <a href="/transaction/history/date/true/{{ search }}">
+                {% endif %}
+                <h3 style="text-align: center">
+                    {% if sort == 'date' %}
+                        {% if order == 'true' %}
+                            <i class="fa fa-caret-up"></i>
+                        {% else %}
+                            <i class="fa fa-caret-down"></i>
+                        {% endif %}
+                    {% endif %}
+                    Date
+                </h3>
+                </a>
+            </th>
+        </tr>
+        {% for transaction in transactions %}
+            <tr>
+                <td>
+                    {{ transaction.sender }}
+                </td>
+                <td>
+                    {{ transaction.receiver }}
+                </td>
+                <td>
+                    {{ transaction.currency }}
+                </td>
+                <td>
+                    {{ transaction.amount }}
+                </td>
+                <td>
+                    {{ transaction.state }}
+                </td>
+                <td>
+                    {{ transaction.date }}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+{% endblock %}
