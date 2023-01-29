@@ -20,7 +20,6 @@ from utility import *
 
 @app.route('/')
 def home():
-    start_new_thread(process_transactions, ())
     db.create_all()
 
     # fetch account data
