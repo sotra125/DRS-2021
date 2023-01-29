@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 from flask_toastr import Toastr
 
-from flask import Flask, render_template, session, request, flash, url_for, redirect
+from flask import Flask, render_template, session, request, flash, redirect, url_for
 import requests
 
 app = Flask(__name__)
@@ -30,7 +30,6 @@ def home():
 
 
 # </editor-fold>
-
 
 # <editor-fold desc="User Routes">
 
@@ -171,7 +170,6 @@ def update_currencies():
 
 # </editor-fold>
 
-
 # <editor-fold desc="Funds Routes">
 
 
@@ -242,7 +240,7 @@ def send():
 
     # OK
     if response.status_code == 200:
-        flash('Funds have been successfully sent!', 'message')
+        flash('Transaction is being processed!', 'message')
         return redirect(url_for('home'))
 
     # BAD REQUEST
@@ -252,7 +250,6 @@ def send():
 
 
 # </editor-fold>
-
 
 # <editor-fold desc="Transaction Routes">
 
@@ -303,7 +300,6 @@ def transactions_history(sort: str, order: str, search: str):
 
 # </editor-fold>
 
-
 # <editor-fold desc="Other">
 
 
@@ -327,7 +323,21 @@ def get_account():
     return None
 
 
-# </editor-fold>
+def get_transactions():
+    decoded_transactions = []
+    response = requests.get('http://127.0.0.1:5001/transaction/all', data={'user': session['user']})
+
+    if response.status_code == 200:
+        response_data = pickle.loads(response.content)
+        for transaction in response_data:
+            decoded_transactions.append(json.loads(transaction, object_hook=lambda x: SimpleNamespace(**x)))
+        return decoded_transactions
+
+    return None
+
+
+# </editor-fold>\
+
 
 if __name__ == '__main__':
     app.run(debug=True)

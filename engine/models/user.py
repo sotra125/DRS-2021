@@ -1,7 +1,10 @@
-from engine.application_data import db
+from application_data import db
 
 
 class User(db.Model):
+    __tablename__ = 'users'
+    __table_args__ = {'extend_existing': True}
+
     user_id = db.Column(db.String, primary_key=True)
     email = db.Column(db.String, nullable=False)
     password = db.Column(db.String, nullable=False)

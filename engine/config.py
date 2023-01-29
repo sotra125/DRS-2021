@@ -1,4 +1,4 @@
-PROCESSING_TIME_IN_SECONDS = 300
+PROCESSING_TIME_IN_SECONDS = 3
 
 ACCOUNT_BALANCE_TO_CURRENCY_NAMES_MAP = {
     'usd_balance': 'US Dollar',
@@ -21,4 +21,15 @@ CURRENCY_NAME_TO_ACCOUNT_FIELD_MAP = {
     'dogecoin': 'dog',
     'cardano': 'ada',
     'polkadot': 'dot'
+}
+
+CURRENCY_NAMES_TO_ACCOUNT_BALANCE_MAP = {
+    'US Dollar': 'usd_balance',
+    'Bitcoin': 'btc_balance',
+    'Ethereum': 'eth_balance',
+    'BNB': 'bnb_balance',
+    'Polygon': 'pol_balance',
+    'Dogecoin': 'dog_balance',
+    'Cardano': 'ada_balance',
+    'Polkadot': 'dot_balance'
 }

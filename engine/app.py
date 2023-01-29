@@ -1,24 +1,26 @@
 import pickle
-from _operator import attrgetter
-from datetime import datetime
+from _thread import start_new_thread
+from multiprocessing import Process
+from operator import attrgetter
+from threading import Thread
 
 import jsonpickle
-from flask import request, session
+from flask import render_template, request, session
 from sqlalchemy import or_
 
-from engine.config import CURRENCY_NAMES, ACCOUNT_BALANCE_TO_CURRENCY_NAMES_MAP
-from engine.application_data import app, db
-from engine.utility import get_crypto_prices, hash_text, deactivate_currency, activate_currency, convert, \
-    get_hashed_transaction_id
-from engine.models.user import User
-from engine.models.account import Account
-from engine.models.transaction import Transaction
+from application_data import app
+from config import ACCOUNT_BALANCE_TO_CURRENCY_NAMES_MAP, CURRENCY_NAMES
+from models.transaction import *
+from models.user import User
+from models.account import Account
+from utility import *
 
 
 # <editor-fold desc="Home Routes">
 
 @app.route('/')
 def home():
+    start_new_thread(process_transactions, ())
     db.create_all()
 
     # fetch account data
@@ -43,8 +45,11 @@ def home():
 # <editor-fold desc="User Routes">
 
 
-@app.route('/user/register', methods=['POST'])
+@app.route('/user/register', methods=['GET', 'POST'])
 def register():
+    if request.method == 'GET':
+        return render_template('register.html')
+
     try:
         form_data = request.form
         user: User = User()
@@ -87,8 +92,11 @@ def register():
             mimetype='application/json')
 
 
-@app.route('/user/login', methods=['POST'])
+@app.route('/user/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'GET':
+        return render_template('login.html')
+
     try:
         form_data = request.form
         email, password = form_data['email'], form_data['password']
@@ -330,7 +338,6 @@ def send():
         receiver_email = form_data['receiver']
         currency = form_data['currency']
         amount = round(float(form_data['amount']), 7)
-        sender_account = Account.query.filter_by(user_id=form_data['user']).first()
 
         if amount <= 0:
             return app.response_class(response=pickle.dumps({
@@ -353,39 +360,22 @@ def send():
             }),
                 status=400,
                 mimetype='application/json')
-        receiver_account = Account.query.filter_by(user_id=receiver_user.user_id).first()
-
-        # check if user has sufficient funds in that currency to send
-        if sender_account.__getattribute__(currency) < amount:
-            return app.response_class(response=pickle.dumps({
-                'message': 'Insufficient funds!'
-            }),
-                status=400,
-                mimetype='application/json')
-
-        if currency != 'usd_balance' and not receiver_account.__getattribute__(f'{currency[:3]}_enabled'):
-            return app.response_class(response=pickle.dumps({
-                'message': "Recipient doesn't have that currency active!"
-            }),
-                status=400,
-                mimetype='application/json')
-
-        # equalize funds
-        sender_account.__setattr__(currency, sender_account.__getattribute__(currency) - amount)
-        receiver_account.__setattr__(currency, receiver_account.__getattribute__(currency) + amount)
 
         # add transaction into db
         sender_user = User.query.filter_by(user_id=form_data['user']).first()
         transaction = Transaction()  # NOQA 3104
-        transaction.id = get_hashed_transaction_id(sender_user.email, receiver_user.email, amount=amount)
         transaction.sender = sender_user.email
         transaction.currency = ACCOUNT_BALANCE_TO_CURRENCY_NAMES_MAP[currency]
         transaction.receiver = receiver_user.email
         transaction.amount = amount
         transaction.date = datetime.now()
         transaction.state = 'Processing'
-        db.session.add(transaction)
 
+        id_generation_thread = Thread(target=generate_transaction_id, args=(transaction))
+        id_generation_thread.start()
+        id_generation_thread.join()
+
+        db.session.add(transaction)
         db.session.commit()
         return app.response_class(response=pickle.dumps({}),
                                   status=200,
@@ -501,4 +491,6 @@ if __name__ == '__main__':
     db.init_app(app)
     with app.app_context():
         db.create_all()
+    transaction_handler_process = Process(target=process_transactions, args=())
+    transaction_handler_process.start()
     app.run(port=5001, debug=True)

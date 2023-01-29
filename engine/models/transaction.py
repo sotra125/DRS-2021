@@ -1,7 +1,10 @@
-from engine.application_data import db
+from application_data import db
 
 
 class Transaction(db.Model):
+    __tablename__ = 'transactions'
+    __table_args__ = {'extend_existing': True}
+
     id = db.Column(db.String, primary_key=True)
     sender = db.Column(db.String, nullable=False)
     receiver = db.Column(db.String, nullable=False)

@@ -1,18 +1,26 @@
+from datetime import datetime
 from random import randint
-
-from pycoingecko import CoinGeckoAPI
+from time import sleep
 from Crypto.Hash import keccak
+from pycoingecko import CoinGeckoAPI
 
-from engine.config import CURRENCY_NAME_TO_ACCOUNT_FIELD_MAP
-from engine.models.account import Account
+from application_data import app, db
+from config import PROCESSING_TIME_IN_SECONDS, CURRENCY_NAME_TO_ACCOUNT_FIELD_MAP, CURRENCY_NAMES_TO_ACCOUNT_BALANCE_MAP
+from engine.models.user import User
+from models.account import Account
+from models.transaction import Transaction
 
 
-def hash_text(text):
-    byte_array = bytearray(text, "utf8")
-    keccak_obj = keccak.new(digest_bits=256)
-    keccak_obj.update(byte_array)
-    hashed_text = keccak_obj.hexdigest()
-    return hashed_text
+def hash_text(text: str) -> str:
+    """
+    Hashes text using the keccak 256 algorithm
+    :param text: Text that's going to be hashed
+    :return: Hashed string
+    """
+    a_byte_array = bytearray(text, "utf8")
+    hashed_text = keccak.new(digest_bits=256)
+    hashed_text.update(a_byte_array)
+    return hashed_text.hexdigest()
 
 
 def get_hashed_transaction_id(user_1: str, user_2: str = '', amount='') -> str:
@@ -27,9 +35,16 @@ def get_hashed_transaction_id(user_1: str, user_2: str = '', amount='') -> str:
     return hash_text(f'{user_1}{user_2}{amount}{random_value}')
 
 
+def generate_transaction_id(transaction: Transaction) -> None:
+    transaction.id = get_hashed_transaction_id(transaction.sender, transaction.receiver, transaction.amount)
+
+
 def get_crypto_prices():
     """
-    Fetches crypto market values using the CoinGecko api
+    Gets crypto prices from the CoinGeckoAPI api
+    :return: E.g. [{'cardano': {'usd': 0.31708}, 'bitcoin': {'usd': 16974.59}, 'binancecoin': {'usd': 288.21},
+                    'matic-network': {'usd': 0.90794}, 'dogecoin': {'usd': 0.100344}, 'polkadot': {'usd': 5.45},
+                    'ethereum': {'usd': 1255.73}}]
     """
 
     # fetch price data
@@ -102,3 +117,67 @@ def deactivate_currency(account: Account, currency: str) -> bool:
         return True
     except:  # NOQA
         return False
+
+
+def process_transactions() -> None:
+    """
+    Processes all transactions in the state of 'Processing'.
+    After 5 minutes have passed since the initial event of the transaction,
+    it changes the state of the transaction to 'Processed'.
+    :return: None
+    """
+    with app.app_context():
+        while True:
+            try:
+                sleep(3)  # delay making db query
+
+                # fetch all processing transactions
+                processing_transactions = Transaction.query.filter_by(state='Processing').all()
+                made_changes: bool = False
+
+                # check if any transactions have been processed and update states if they have
+                for transaction in processing_transactions:
+                    transaction_date = datetime.strptime(transaction.date, '%Y-%m-%d %H:%M:%S.%f')
+                    present_date = datetime.now()
+
+                    difference = present_date - transaction_date
+                    diff = difference.total_seconds()
+
+                    if diff >= PROCESSING_TIME_IN_SECONDS:
+                        is_valid = perform_transaction(transaction)
+                        if is_valid:
+                            transaction.state = 'Valid'
+                        else:
+                            transaction.state = 'Invalid'
+                        made_changes = True
+
+                # save changes if any were made
+                if made_changes:
+                    db.session.commit()
+            except:  # NOQA
+                pass
+
+
+def perform_transaction(transaction: Transaction) -> bool:
+    try:
+        sender_user = User.query.filter_by(email=transaction.sender).first()
+        sender_account = Account.query.filter_by(user_id=sender_user.user_id).first()
+        receiver_user = User.query.filter_by(email=transaction.receiver).first()
+        receiver_account = Account.query.filter_by(user_id=receiver_user.user_id).first()
+
+        currency_attr = CURRENCY_NAMES_TO_ACCOUNT_BALANCE_MAP[transaction.currency]
+
+        if sender_account.__getattribute__(currency_attr) < transaction.amount:
+            return False  # Insufficient funds!
+
+        if currency_attr != 'usd_balance' and not receiver_account.__getattribute__(f'{currency_attr[:3]}_enabled'):
+            return False  # Recipient doesn't have that currency active!
+
+        # equalize funds
+        sender_account.__setattr__(currency_attr, sender_account.__getattribute__(currency_attr) - transaction.amount)
+        receiver_account.__setattr__(currency_attr,
+                                     receiver_account.__getattribute__(currency_attr) + transaction.amount)
+    except:  # NOQA
+        return False  # Error occured
+
+    return True
